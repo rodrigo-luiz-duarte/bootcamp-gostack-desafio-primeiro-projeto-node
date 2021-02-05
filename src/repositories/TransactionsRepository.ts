@@ -24,7 +24,15 @@ class TransactionsRepository {
   }
 
   public getBalance(): Balance {
-    const income = this.transactions
+    let income = 0;
+    let outcome = 0;
+    let total = 0;
+
+    if (!this.transactions || this.transactions.length === 0) {
+      return { income, outcome, total };
+    }
+
+    income = this.transactions
       .map(transaction => {
         if (transaction.type === 'income') {
           return transaction.value;
@@ -35,7 +43,7 @@ class TransactionsRepository {
         return v1 + v2;
       });
 
-    const outcome = this.transactions
+    outcome = this.transactions
       .map(transaction => {
         if (transaction.type === 'outcome') {
           return transaction.value;
@@ -46,7 +54,7 @@ class TransactionsRepository {
         return v1 + v2;
       });
 
-    const total = income + outcome;
+    total = income - outcome;
 
     const balance = { income, outcome, total };
 
@@ -54,6 +62,14 @@ class TransactionsRepository {
   }
 
   public create({ title, value, type }: CreateTransactionDTO): Transaction {
+    if (type === 'outcome') {
+      const balance = this.getBalance();
+
+      if (value > balance.total) {
+        throw new Error('There is not enough balance for this transaction.');
+      }
+    }
+
     const transaction = new Transaction({ title, value, type });
 
     this.transactions.push(transaction);

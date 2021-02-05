@@ -24,42 +24,70 @@ class TransactionsRepository {
   }
 
   public getBalance(): Balance {
-    let income = 0;
-    let outcome = 0;
-    let total = 0;
-
-    if (!this.transactions || this.transactions.length === 0) {
-      return { income, outcome, total };
-    }
-
-    income = this.transactions
-      .map(transaction => {
-        if (transaction.type === 'income') {
-          return transaction.value;
+    const balance = this.transactions.reduce(
+      (accumulator: Balance, transaction: Transaction) => {
+        switch (transaction.type) {
+          case 'income':
+            accumulator.income += transaction.value;
+            break;
+          case 'outcome':
+            accumulator.outcome += transaction.value;
+            break;
+          default:
+            break;
         }
-        return 0;
-      })
-      .reduce((v1, v2) => {
-        return v1 + v2;
-      });
 
-    outcome = this.transactions
-      .map(transaction => {
-        if (transaction.type === 'outcome') {
-          return transaction.value;
-        }
-        return 0;
-      })
-      .reduce((v1, v2) => {
-        return v1 + v2;
-      });
+        return accumulator;
+      },
+      {
+        income: 0,
+        outcome: 0,
+        total: 0,
+      },
+    );
 
-    total = income - outcome;
-
-    const balance = { income, outcome, total };
+    balance.total = balance.income - balance.outcome;
 
     return balance;
   }
+
+  // public getBalance(): Balance {
+  //   let income = 0;
+  //   let outcome = 0;
+  //   let total = 0;
+
+  //   if (!this.transactions || this.transactions.length === 0) {
+  //     return { income, outcome, total };
+  //   }
+
+  //   income = this.transactions
+  //     .map(transaction => {
+  //       if (transaction.type === 'income') {
+  //         return transaction.value;
+  //       }
+  //       return 0;
+  //     })
+  //     .reduce((v1, v2) => {
+  //       return v1 + v2;
+  //     });
+
+  //   outcome = this.transactions
+  //     .map(transaction => {
+  //       if (transaction.type === 'outcome') {
+  //         return transaction.value;
+  //       }
+  //       return 0;
+  //     })
+  //     .reduce((v1, v2) => {
+  //       return v1 + v2;
+  //     });
+
+  //   total = income - outcome;
+
+  //   const balance = { income, outcome, total };
+
+  //   return balance;
+  // }
 
   public create({ title, value, type }: CreateTransactionDTO): Transaction {
     if (type === 'outcome') {
